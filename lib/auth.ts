@@ -111,15 +111,31 @@ export function loginWithGitHub() {
   window.location.href = `${API_BASE_URL}/oauth2/authorization/github`;
 }
 
+/**
+ * Logs out the current user by calling Spring Security's logout endpoint.
+ * This invalidates the session, clears authentication, and deletes the session cookie.
+ */
 export async function logout() {
   try {
-    await fetch(`${API_BASE_URL}/logout`, {
+    // Call Spring Security's logout endpoint which properly invalidates the session
+    const response = await fetch(`${API_BASE_URL}/logout`, {
       method: 'POST',
       credentials: 'include',
+      headers: {
+        'Content-Type': 'application/json',
+      },
     });
+
+    if (response.ok) {
+      const data = await response.json();
+      console.log('Logout successful:', data.message);
+    }
+    
+    // Redirect to home page after logout
     window.location.href = '/';
   } catch (error) {
     console.error('Logout failed:', error);
+    // Redirect anyway to show logged out state
     window.location.href = '/';
   }
 }
