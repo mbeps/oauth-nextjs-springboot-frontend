@@ -1,9 +1,11 @@
+import { apiClient } from './api-client';
+
 export interface User {
-  id: number;  // Matches GitHub's Integer type
+  id: number;
   login: string;
   name: string;
   email?: string;
-  avatarUrl: string;  // Changed from avatar_url to match DTO
+  avatarUrl: string;
 }
 
 export interface AuthStatus {
@@ -31,18 +33,8 @@ const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080';
 
 export async function checkAuthStatus(): Promise<AuthStatus> {
   try {
-    const response = await fetch(`${API_BASE_URL}/api/auth/status`, {
-      credentials: 'include',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-    });
-
-    if (response.ok) {
-      return await response.json();
-    }
-    
-    return { authenticated: false };
+    const response = await apiClient.get<AuthStatus>('/api/auth/status');
+    return response.data;
   } catch (error) {
     console.error('Auth status check failed:', error);
     return { authenticated: false };
@@ -50,89 +42,27 @@ export async function checkAuthStatus(): Promise<AuthStatus> {
 }
 
 export async function fetchProtectedData(): Promise<ProtectedData> {
-  try {
-    const response = await fetch(`${API_BASE_URL}/api/protected/data`, {
-      credentials: 'include',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-    });
-
-    if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`);
-    }
-
-    return await response.json();
-  } catch (error) {
-    console.error('Failed to fetch protected data:', error);
-    throw error;
-  }
+  const response = await apiClient.get<ProtectedData>('/api/protected/data');
+  return response.data;
 }
 
 export async function performAction(action: string): Promise<Record<string, unknown>> {
-  try {
-    const response = await fetch(`${API_BASE_URL}/api/protected/action`, {
-      method: 'POST',
-      credentials: 'include',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({ action }),
-    });
-
-    if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`);
-    }
-
-    return await response.json();
-  } catch (error) {
-    console.error('Failed to perform action:', error);
-    throw error;
-  }
+  const response = await apiClient.post<Record<string, unknown>>('/api/protected/action', { action });
+  return response.data;
 }
 
 export async function fetchPublicData(): Promise<PublicData> {
-  try {
-    const response = await fetch(`${API_BASE_URL}/api/public/health`, {
-      headers: {
-        'Content-Type': 'application/json',
-      },
-    });
-
-    if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`);
-    }
-
-    return await response.json();
-  } catch (error) {
-    console.error('Failed to fetch public data:', error);
-    throw error;
-  }
+  const response = await apiClient.get<PublicData>('/api/public/health');
+  return response.data;
 }
 
 export function loginWithGitHub() {
   window.location.href = `${API_BASE_URL}/oauth2/authorization/github`;
 }
 
-/**
- * Logs out the current user by calling Spring Security's logout endpoint.
- * With JWT, this deletes the JWT cookie on the client side.
- */
 export async function logout() {
   try {
-    const response = await fetch(`${API_BASE_URL}/logout`, {
-      method: 'POST',
-      credentials: 'include',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-    });
-
-    if (response.ok) {
-      const data = await response.json();
-      console.log('Logout successful:', data.message);
-    }
-    
+    await apiClient.post('/logout');
     window.location.href = '/';
   } catch (error) {
     console.error('Logout failed:', error);

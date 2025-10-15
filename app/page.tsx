@@ -3,32 +3,23 @@
 import { useEffect, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { checkAuthStatus, loginWithGitHub, fetchPublicData, type AuthStatus, type PublicData } from '@/lib/auth';
+import { loginWithGitHub, fetchPublicData, type PublicData } from '@/lib/auth';
+import { useAuth } from '@/contexts/AuthContext';
 import { useRouter } from 'next/navigation';
 
 export default function Home() {
-  const [, setAuthStatus] = useState<AuthStatus>({ authenticated: false });
+  const { authenticated, loading } = useAuth();
   const [publicData, setPublicData] = useState<PublicData | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
   const router = useRouter();
 
   useEffect(() => {
-    const checkAuth = async () => {
-      try {
-        const status = await checkAuthStatus();
-        setAuthStatus(status);
-        
-        if (status.authenticated) {
-          router.push('/dashboard');
-        }
-      } catch (error) {
-          setError('Failed to check authentication status');
-      } finally {
-        setLoading(false);
-      }
-    };
+    // Redirect if already authenticated
+    if (!loading && authenticated) {
+      router.push('/dashboard');
+    }
+  }, [authenticated, loading, router]);
 
+  useEffect(() => {
     const loadPublicData = async () => {
       try {
         const data = await fetchPublicData();
@@ -38,9 +29,8 @@ export default function Home() {
       }
     };
 
-    checkAuth();
     loadPublicData();
-  }, [router]);
+  }, []);
 
   const handleLogin = () => {
     loginWithGitHub();
@@ -52,6 +42,17 @@ export default function Home() {
         <div className="text-center">
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900 mx-auto"></div>
           <p className="mt-2 text-gray-600">Loading...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Don't show login page if authenticated (will redirect)
+  if (authenticated) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-center">
+          <p className="text-gray-600">Redirecting to dashboard...</p>
         </div>
       </div>
     );
@@ -77,12 +78,6 @@ export default function Home() {
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
-            {error && (
-              <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded">
-                {error}
-              </div>
-            )}
-            
             <Button 
               onClick={handleLogin} 
               className="w-full"

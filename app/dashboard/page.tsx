@@ -1,51 +1,33 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import {
-  checkAuthStatus,
-  fetchProtectedData,
-  performAction,
-  logout,
-  type AuthStatus,
-  type ProtectedData,
-} from '@/lib/auth';
+import { fetchProtectedData, performAction, logout, type ProtectedData } from '@/lib/auth';
+import { useAuth } from '@/contexts/AuthContext';
 
 export default function Dashboard() {
-  const [authStatus, setAuthStatus] = useState<AuthStatus>({ authenticated: false });
+  const { user, loading, authenticated } = useAuth();
   const [protectedData, setProtectedData] = useState<ProtectedData | null>(null);
-  const [loading, setLoading] = useState(true);
   const [actionLoading, setActionLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const router = useRouter();
 
   useEffect(() => {
-    const checkAuth = async () => {
-      try {
-        const status = await checkAuthStatus();
-        setAuthStatus(status);
-        
-        if (!status.authenticated) {
-          router.push('/');
-          return;
+    const loadProtectedData = async () => {
+      if (authenticated && user) {
+        try {
+          const data = await fetchProtectedData();
+          setProtectedData(data);
+        } catch (error) {
+          setError('Failed to load protected data');
+          console.error('Protected data error:', error);
         }
-
-        // Load protected data
-        const data = await fetchProtectedData();
-        setProtectedData(data);
-      } catch (error) {
-        setError('Failed to load dashboard data');
-        console.error('Dashboard error:', error);
-      } finally {
-        setLoading(false);
       }
     };
 
-    checkAuth();
-  }, [router]);
+    loadProtectedData();
+  }, [authenticated, user]);
 
   const handleAction = async (action: string) => {
     setActionLoading(true);
@@ -85,7 +67,7 @@ export default function Dashboard() {
     );
   }
 
-  if (!authStatus.authenticated || !authStatus.user) {
+  if (!authenticated || !user) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
@@ -107,14 +89,14 @@ export default function Dashboard() {
             <div className="flex items-center space-x-4">
               <div className="flex items-center space-x-3">
                 <Avatar>
-                  <AvatarImage src={authStatus.user.avatarUrl} alt={authStatus.user.name} />
+                  <AvatarImage src={user.avatarUrl} alt={user.name} />
                   <AvatarFallback>
-                    {authStatus.user.name?.charAt(0) || authStatus.user.login.charAt(0)}
+                    {user.name?.charAt(0) || user.login.charAt(0)}
                   </AvatarFallback>
                 </Avatar>
                 <div className="hidden sm:block">
-                  <p className="text-sm font-medium text-gray-900">{authStatus.user.name}</p>
-                  <p className="text-xs text-gray-500">@{authStatus.user.login}</p>
+                  <p className="text-sm font-medium text-gray-900">{user.name}</p>
+                  <p className="text-xs text-gray-500">@{user.login}</p>
                 </div>
               </div>
               <Button variant="outline" onClick={handleLogout}>
@@ -145,20 +127,20 @@ export default function Dashboard() {
                 <div className="space-y-3">
                   <div>
                     <label className="text-sm font-medium text-gray-500">Name</label>
-                    <p className="text-sm text-gray-900">{authStatus.user.name || 'Not provided'}</p>
+                    <p className="text-sm text-gray-900">{user.name || 'Not provided'}</p>
                   </div>
                   <div>
                     <label className="text-sm font-medium text-gray-500">Username</label>
-                    <p className="text-sm text-gray-900">@{authStatus.user.login}</p>
+                    <p className="text-sm text-gray-900">@{user.login}</p>
                   </div>
                   <div>
                     <label className="text-sm font-medium text-gray-500">User ID</label>
-                    <p className="text-sm text-gray-900">{authStatus.user.id}</p>
+                    <p className="text-sm text-gray-900">{user.id}</p>
                   </div>
-                  {authStatus.user.email && (
+                  {user.email && (
                     <div>
                       <label className="text-sm font-medium text-gray-500">Email</label>
-                      <p className="text-sm text-gray-900">{authStatus.user.email}</p>
+                      <p className="text-sm text-gray-900">{user.email}</p>
                     </div>
                   )}
                 </div>
