@@ -1,9 +1,9 @@
 export interface User {
-  id: number;
+  id: number;  // Matches GitHub's Integer type
   login: string;
   name: string;
   email?: string;
-  avatar_url: string;
+  avatarUrl: string;  // Changed from avatar_url to match DTO
 }
 
 export interface AuthStatus {
@@ -13,15 +13,18 @@ export interface AuthStatus {
 
 export interface ProtectedData {
   message: string;
+  user: string;
   data?: {
     items?: string[];
-    lastUpdated?: string | number | null;
+    count?: number;
+    lastUpdated?: number;
   } | null;
 }
 
 export interface PublicData {
   status: string;
-  timestamp: string | number;
+  message: string;
+  timestamp: number;
 }
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080';
@@ -113,11 +116,10 @@ export function loginWithGitHub() {
 
 /**
  * Logs out the current user by calling Spring Security's logout endpoint.
- * This invalidates the session, clears authentication, and deletes the session cookie.
+ * With JWT, this deletes the JWT cookie on the client side.
  */
 export async function logout() {
   try {
-    // Call Spring Security's logout endpoint which properly invalidates the session
     const response = await fetch(`${API_BASE_URL}/logout`, {
       method: 'POST',
       credentials: 'include',
@@ -131,11 +133,9 @@ export async function logout() {
       console.log('Logout successful:', data.message);
     }
     
-    // Redirect to home page after logout
     window.location.href = '/';
   } catch (error) {
     console.error('Logout failed:', error);
-    // Redirect anyway to show logged out state
     window.location.href = '/';
   }
 }

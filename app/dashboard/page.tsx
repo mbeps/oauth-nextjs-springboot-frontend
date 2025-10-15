@@ -107,7 +107,7 @@ export default function Dashboard() {
             <div className="flex items-center space-x-4">
               <div className="flex items-center space-x-3">
                 <Avatar>
-                  <AvatarImage src={authStatus.user.avatar_url} alt={authStatus.user.name} />
+                  <AvatarImage src={authStatus.user.avatarUrl} alt={authStatus.user.name} />
                   <AvatarFallback>
                     {authStatus.user.name?.charAt(0) || authStatus.user.login.charAt(0)}
                   </AvatarFallback>
@@ -178,22 +178,24 @@ export default function Dashboard() {
                       <label className="text-sm font-medium text-gray-500">Message</label>
                       <p className="text-sm text-gray-900">{protectedData.message}</p>
                     </div>
-                    <div>
-                      <label className="text-sm font-medium text-gray-500">Items</label>
-                      <ul className="text-sm text-gray-900 list-disc list-inside">
-                        {protectedData.data?.items?.map((item: string, index: number) => (
-                          <li key={index}>{item}</li>
-                        ))}
-                      </ul>
-                    </div>
-                    <div>
-                      <label className="text-sm font-medium text-gray-500">Last Updated</label>
-                      <p className="text-sm text-gray-900">
-                        {protectedData.data?.lastUpdated
-                          ? new Date(protectedData.data.lastUpdated).toLocaleString()
-                          : 'N/A'}
-                      </p>
-                    </div>
+                    {protectedData.data?.items && (
+                      <div>
+                        <label className="text-sm font-medium text-gray-500">Items</label>
+                        <ul className="text-sm text-gray-900 list-disc list-inside">
+                          {protectedData.data.items.map((item: string, index: number) => (
+                            <li key={index}>{item}</li>
+                          ))}
+                        </ul>
+                      </div>
+                    )}
+                    {protectedData.data?.lastUpdated && (
+                      <div>
+                        <label className="text-sm font-medium text-gray-500">Last Updated</label>
+                        <p className="text-sm text-gray-900">
+                          {new Date(protectedData.data.lastUpdated).toLocaleString()}
+                        </p>
+                      </div>
+                    )}
                   </div>
                 ) : (
                   <p className="text-sm text-gray-500">Loading protected data...</p>
