@@ -3,13 +3,15 @@
 import { useEffect, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { loginWithGitHub, fetchPublicData, type PublicData } from '@/lib/auth';
+import { loginWithGitHub, fetchPublicData, performAction, type PublicData } from '@/lib/auth';
 import { useAuth } from '@/contexts/AuthContext';
 import { useRouter } from 'next/navigation';
+import { toast } from 'sonner';
 
 export default function Home() {
   const { authenticated, loading } = useAuth();
   const [publicData, setPublicData] = useState<PublicData | null>(null);
+  const [actionLoading, setActionLoading] = useState(false);
   const router = useRouter();
 
   useEffect(() => {
@@ -34,6 +36,21 @@ export default function Home() {
 
   const handleLogin = () => {
     loginWithGitHub();
+  };
+
+  const handleTestAction = async (action: string) => {
+    setActionLoading(true);
+    
+    try {
+      await performAction(action);
+      toast.success(`Action '${action}' completed successfully`);
+    } catch (error) {
+      toast.error('Authentication required', {
+        description: 'You must be logged in to perform this action'
+      });
+    } finally {
+      setActionLoading(false);
+    }
   };
 
   if (loading) {
@@ -99,6 +116,34 @@ export default function Home() {
                 </p>
               </div>
             )}
+          </CardContent>
+        </Card>
+
+        {/* Test Protected Actions (Should fail when not logged in) */}
+        <Card>
+          <CardHeader>
+            <CardTitle>Test Protected Actions</CardTitle>
+            <CardDescription>
+              These buttons require authentication and will show error toasts
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="flex flex-wrap gap-3">
+              <Button 
+                variant="outline"
+                onClick={() => handleTestAction('test_action')}
+                disabled={actionLoading}
+              >
+                Test Action
+              </Button>
+              <Button 
+                variant="outline"
+                onClick={() => handleTestAction('sample_operation')}
+                disabled={actionLoading}
+              >
+                Sample Operation
+              </Button>
+            </div>
           </CardContent>
         </Card>
 

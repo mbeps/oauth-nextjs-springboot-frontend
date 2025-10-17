@@ -6,6 +6,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { fetchProtectedData, performAction, logout, type ProtectedData } from '@/lib/auth';
 import { useAuth } from '@/contexts/AuthContext';
+import { toast } from 'sonner';
 
 export default function Dashboard() {
   const { user, loading, authenticated } = useAuth();
@@ -21,7 +22,7 @@ export default function Dashboard() {
           setProtectedData(data);
         } catch (error) {
           setError('Failed to load protected data');
-          console.error('Protected data error:', error);
+          toast.error('Failed to load protected data');
         }
       }
     };
@@ -35,14 +36,15 @@ export default function Dashboard() {
     
     try {
       const result = await performAction(action);
-      console.log('Action result:', result);
+      toast.success(`Action '${action}' completed successfully`);
       
       // Refresh protected data
       const data = await fetchProtectedData();
       setProtectedData(data);
     } catch (error) {
-      setError(`Failed to perform action: ${action}`);
-      console.error('Action error:', error);
+      const errorMessage = `Failed to perform action: ${action}`;
+      setError(errorMessage);
+      toast.error(errorMessage);
     } finally {
       setActionLoading(false);
     }
@@ -52,7 +54,7 @@ export default function Dashboard() {
     try {
       await logout();
     } catch (err) {
-      console.error('Logout error:', err);
+      toast.error('Logout failed');
     }
   };
 
