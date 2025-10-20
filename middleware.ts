@@ -7,12 +7,21 @@ const publicRoutes = ['/', '/error'];
 // Routes that require authentication
 const protectedRoutes = ['/dashboard'];
 
+/**
+ * Next.js middleware for server-side route protection.
+ * Validates JWT cookie presence for protected routes.
+ * Redirects unauthenticated users to home page when accessing protected areas.
+ * Backend validates token integrity and expiry.
+ * @param request  Incoming HTTP request
+ * @returns Response to continue or redirect request
+ * @author Maruf Bepary
+ */
 export function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
   // Check if route is public
   const isPublicRoute = publicRoutes.includes(pathname);
-  
+
   // Check if route is protected
   const isProtectedRoute = protectedRoutes.some(route => pathname.startsWith(route));
 
@@ -24,14 +33,14 @@ export function middleware(request: NextRequest) {
   // For protected routes, check if JWT cookie exists
   if (isProtectedRoute) {
     const jwtCookie = request.cookies.get('jwt');
-    
+
     // If no JWT cookie, redirect to home
     if (!jwtCookie) {
       const url = request.nextUrl.clone();
       url.pathname = '/';
       return NextResponse.redirect(url);
     }
-    
+
     // JWT exists - let the request through
     // Backend will validate the token properly
     return NextResponse.next();

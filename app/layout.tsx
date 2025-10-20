@@ -20,6 +20,15 @@ export const metadata: Metadata = {
   description: "NextJS + Spring Boot OAuth Integration Demo",
 };
 
+/**
+ * Root layout component for entire application.
+ * Sets up global providers: theme, authentication, and toast notifications.
+ * Applied to all pages via Next.js App Router.
+ * @param props Component props
+ * @param props.children Page content to render
+ * @returns HTML document with nested providers
+ * @author Maruf Bepary
+ */
 export default function RootLayout({
   children,
 }: Readonly<{

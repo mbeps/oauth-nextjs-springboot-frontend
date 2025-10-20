@@ -8,7 +8,13 @@ let failedQueue: Array<{
   reject: (reason?: unknown) => void;
 }> = [];
 
-const processQueue = (error: Error | null = null) => {
+/**
+ * Processes the queue of failed requests during token refresh.
+ * Resolves or rejects queued promises based on refresh outcome.
+ * @author Maruf Bepary
+ * @param Error if refresh failed, null if successful.
+ */
+const processQueue = (error: Error | null = null): void => {
   failedQueue.forEach(prom => {
     if (error) {
       prom.reject(error);
@@ -20,7 +26,13 @@ const processQueue = (error: Error | null = null) => {
   failedQueue = [];
 };
 
-// Create axios instance with default config
+
+/**
+ * Axios HTTP client for communicating with the Spring Boot backend.
+ * Handles authentication, token refresh, and error management.
+ * Used for all API requests from the frontend.
+ * @author Maruf Bepary
+ */
 export const apiClient = axios.create({
   baseURL: API_BASE_URL,
   withCredentials: true,
@@ -29,7 +41,15 @@ export const apiClient = axios.create({
   },
 });
 
-// Response interceptor for global error handling and token refresh
+
+/**
+ * Response interceptor for global error handling and token refresh.
+ * Refreshes tokens on 401 errors and retries requests as needed.
+ * @param response Axios response object.
+ * @param error Axios error object.
+ * @returns Response or rejected promise.
+ * @author Maruf Bepary
+ */
 apiClient.interceptors.response.use(
   (response) => response,
   async (error) => {

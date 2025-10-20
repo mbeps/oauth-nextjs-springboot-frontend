@@ -8,6 +8,13 @@ import { fetchProtectedData, performAction, logout, type ProtectedData } from '@
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
 
+/**
+ * Protected dashboard page for authenticated users.
+ * Displays user profile, protected data, and action controls.
+ * Shows user avatar, GitHub profile details, and backend-provided data.
+ * @returns Dashboard with user info and protected resources
+ * @author Maruf Bepary
+ */
 export default function Dashboard() {
   const { user, loading, authenticated } = useAuth();
   const [protectedData, setProtectedData] = useState<ProtectedData | null>(null);
@@ -30,14 +37,21 @@ export default function Dashboard() {
     loadProtectedData();
   }, [authenticated, user]);
 
+  /**
+   * Executes a protected action and refreshes displayed data.
+   * Shows success/error toast notification based on outcome.
+   * @param action Action identifier to execute on backend
+   * @async
+   * @author Maruf Bepary
+   */
   const handleAction = async (action: string) => {
     setActionLoading(true);
     setError(null);
-    
+
     try {
       const result = await performAction(action);
       toast.success(`Action '${action}' completed successfully`);
-      
+
       // Refresh protected data
       const data = await fetchProtectedData();
       setProtectedData(data);
@@ -50,6 +64,12 @@ export default function Dashboard() {
     }
   };
 
+  /**
+   * Logs out current user and invalidates session.
+   * Clears tokens and redirects to home page.
+   * @async
+   * @author Maruf Bepary
+   */
   const handleLogout = async () => {
     try {
       await logout();

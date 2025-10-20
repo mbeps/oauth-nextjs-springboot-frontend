@@ -8,6 +8,13 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
 
+/**
+ * Home page component - login and public information page.
+ * Displays GitHub OAuth login button and tests protected routes without auth.
+ * Redirects authenticated users to dashboard.
+ * @returns Home page with login options and public data
+ * @author Maruf Bepary
+ */
 export default function Home() {
   const { authenticated, loading } = useAuth();
   const [publicData, setPublicData] = useState<PublicData | null>(null);
@@ -34,13 +41,25 @@ export default function Home() {
     loadPublicData();
   }, []);
 
+  /**
+   * Initiates GitHub OAuth login flow.
+   * Redirects user to GitHub authorization endpoint via backend.
+   * @author Maruf Bepary
+   */
   const handleLogin = () => {
     loginWithGitHub();
   };
 
+  /**
+   * Attempts to perform a protected action (requires authentication).
+   * Shows success toast if successful or error toast if unauthenticated.
+   * @async
+   * @param action Action identifier to execute on backend
+   * @author Maruf Bepary
+   */
   const handleTestAction = async (action: string) => {
     setActionLoading(true);
-    
+
     try {
       await performAction(action);
       toast.success(`Action '${action}' completed successfully`);
